@@ -1,4 +1,5 @@
 /* Create an array named products which you will use to add all of your product object literals that you create in the next step. */
+
 const products = [];
 
 /* Create 3 or more product objects using object literal notation 
@@ -9,7 +10,7 @@ const products = [];
    - productId: unique id for the product (number)
    - image: picture of product (url string)
 */
-// Create 3 product objects and push them into the products array
+
 products.push({
   name: "Cherry",
   price: 2.99,
@@ -33,7 +34,6 @@ products.push({
   productId: 3,
   image: "/images/strawberry.jpg"
 });
-
 
 /* Images provided in /images folder. All images from Unsplash.com
    - cherry.jpg by Mae Mu
@@ -75,6 +75,7 @@ function addProductToCart(productId) {
   - increaseQuantity should get the correct product based on the productId
   - increaseQuantity should then increase the product's quantity
 */
+
 function increaseQuantity(productId) {
   // Find the product in either products or cart (cart is typically where quantity is adjusted)
   const product = products.find(item => item.productId === productId);
