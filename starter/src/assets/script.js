@@ -1,6 +1,6 @@
+
 /* Create an array named products which you will use to add all of your product object literals that you create in the next step. */
 
-const products = [];
 
 /* Create 3 or more product objects using object literal notation 
    Each product should include five properties
@@ -11,29 +11,13 @@ const products = [];
    - image: picture of product (url string)
 */
 
-products.push({
-  name: "Cherry",
-  price: 2.99,
-  quantity: 0,
-  productId: 1,
-  image: "/images/cherry.jpg"
-});
+const products = [
+  { name: "Cherry",     price: 2,   quantity: 0, productId: 101, image: "./images/cherry.jpg" },
+  { name: "Orange",     price: 1.5, quantity: 0, productId: 102, image: "./images/orange.jpg" },
+  { name: "Strawberry", price: 3,   quantity: 0, productId: 103, image: "./images/strawberry.jpg" }
+];
 
-products.push({
-  name: "Orange",
-  price: 1.49,
-  quantity: 0,
-  productId: 2,
-  image: "/images/orange.jpg"
-});
 
-products.push({
-  name: "Strawberry",
-  price: 3.99,
-  quantity: 0,
-  productId: 3,
-  image: "/images/strawberry.jpg"
-});
 
 /* Images provided in /images folder. All images from Unsplash.com
    - cherry.jpg by Mae Mu
@@ -43,31 +27,31 @@ products.push({
 
 /* Declare an empty array named cart to hold the items in the cart */
 
-const cart = [];
+let cart = [];
 
 /* Create a function named addProductToCart that takes in the product productId as an argument
   - addProductToCart should get the correct product based on the productId
   - addProductToCart should then increase the product's quantity
   - if the product is not already in the cart, add it to the cart
 */
+function getProductById(productId) {
+  return products.find(function (p) { return p.productId === productId; });
+}
+
+function getCartIndexById(productId) {
+  return cart.findIndex(function (p) { return p.productId === productId; });
+}
 
 function addProductToCart(productId) {
-  // Find the product in the products array
-  const product = products.find(item => item.productId === productId);
+  const product = getProductById(productId);
+  if (!product) return;
 
-  if (product) {
-    // Increase the quantity
-    product.quantity++;
-
-    // Check if the product is already in the cart
-    const inCart = cart.find(item => item.productId === productId);
-
-    // If not already in the cart, add it
-    if (!inCart) {
-      cart.push(product);
-    }
+  const idx = getCartIndexById(productId);
+  if (idx === -1) {
+    product.quantity = 1;      // first click adds with qty 1
+    cart.push(product);
   } else {
-    console.log("Product not found.");
+    product.quantity += 1;     // subsequent clicks just increase
   }
 }
 
@@ -77,13 +61,15 @@ function addProductToCart(productId) {
 */
 
 function increaseQuantity(productId) {
-  // Find the product in either products or cart (cart is typically where quantity is adjusted)
-  const product = products.find(item => item.productId === productId);
+  const product = getProductById(productId);
+  if (!product) return;
 
-  if (product) {
-    product.quantity++;
+  const idx = getCartIndexById(productId);
+  if (idx === -1) {
+    product.quantity = 1;
+    cart.push(product);
   } else {
-    console.log("Product not found.");
+    product.quantity += 1;
   }
 }
 
@@ -94,19 +80,13 @@ function increaseQuantity(productId) {
 */
 
 function decreaseQuantity(productId) {
-  // Find the product in the cart
-  const productIndex = cart.findIndex(item => item.productId === productId);
+  const product = getProductById(productId);
+  if (!product) return;
 
-  if (productIndex !== -1) {
-    // Decrease the quantity
-    cart[productIndex].quantity--;
-
-    // If quantity reaches 0, remove it from the cart
-    if (cart[productIndex].quantity === 0) {
-      cart.splice(productIndex, 1);
-    }
-  } else {
-    console.log("Product not found in cart.");
+  if (product.quantity > 1) {
+    product.quantity -= 1;
+  } else if (product.quantity === 1) {
+    removeProductFromCart(productId); // at 1 → remove per rubric
   }
 }
 
@@ -117,17 +97,10 @@ function decreaseQuantity(productId) {
 */
 
 function removeProductFromCart(productId) {
-  // Find the product in the cart
-  const productIndex = cart.findIndex(item => item.productId === productId);
-
-  if (productIndex !== -1) {
-    // Set the product's quantity to 0
-    cart[productIndex].quantity = 0;
-
-    // Remove the product from the cart
-    cart.splice(productIndex, 1);
-  } else {
-    console.log("Product not found in cart.");
+  const idx = getCartIndexById(productId);
+  if (idx !== -1) {
+    cart[idx].quantity = 0; // reset quantity
+    cart.splice(idx, 1);    // remove from cart
   }
 }
 
@@ -138,22 +111,14 @@ function removeProductFromCart(productId) {
 */
 
 function cartTotal() {
-  let total = 0;
-
-  // Iterate through the cart to calculate total cost
-  cart.forEach(item => {
-    total += item.price * item.quantity;
-  });
-
-  return total;
+  return cart.reduce(function (sum, item) {
+    return sum + (item.price * item.quantity);
+  }, 0);
 }
 
-/* Create a function called emptyCart that empties the products from the cart */
+// Global variable to hold remaining balance (via total paid)
 
-function emptyCart() {
-  // Remove all items from the cart
-  cart.length = 0;
-}
+let remainingBalance = 0;
 
 /* Create a function named pay that takes in an amount as an argument
   - amount is the money paid by customer
@@ -163,18 +128,47 @@ function emptyCart() {
 */
 
 function pay(amount) {
-  const totalCost = cartTotal();  // Get total cost of items in the cart
-  return amount - totalCost;      // Positive = change to return, Negative = remaining balance
+  const amt = Number(amount) || 0;
+
+  // Initialize remaining balance for this checkout cycle on first pay call
+  if (remainingBalance === 0) {
+    remainingBalance = cartTotal();
+  }
+
+  remainingBalance -= amt;
+
+  // If customer still owes money, return negative remaining balance
+  if (remainingBalance > 0) {
+    return -remainingBalance;
+  }
+
+  // If fully paid (or overpaid), return positive change and reset for next checkout
+  const change = Math.abs(remainingBalance);
+  remainingBalance = 0;
+  return change;
+}
+
+/* Create a function called emptyCart that empties the products from the cart */
+
+function emptyCart() {
+  for (let i = 0; i < cart.length; i++) {
+    cart[i].quantity = 0;
+  }
+  cart.length = 0;
+  remainingBalance = 0; // reset checkout state
 }
 
 /* Place stand out suggestions here (stand out suggestions can be found at the bottom of the project rubric.)*/
 
-// Helper function to format numbers as USD currency
-function formatCurrency(amount) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD"
-  }).format(amount);
+function formatCurrencyUSD(amount) {
+  // Always render like "$x.xx USD" even if locale lacks USD support
+  try {
+    return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" })
+      .format(Number(amount) || 0) + " USD";
+  } catch (_) {
+    const n = (Number(amount) || 0).toFixed(2);
+    return `$${n} USD`;
+  }
 }
 
 /* The following is for running unit tests. 
