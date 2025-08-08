@@ -1,7 +1,6 @@
 
 /* Create an array named products which you will use to add all of your product object literals that you create in the next step. */
 
-
 /* Create 3 or more product objects using object literal notation 
    Each product should include five properties
    - name: name of product (string)
@@ -16,8 +15,6 @@ const products = [
   { name: "Orange",     price: 1.5, quantity: 0, productId: 102, image: "./images/orange.jpg" },
   { name: "Strawberry", price: 3,   quantity: 0, productId: 103, image: "./images/strawberry.jpg" }
 ];
-
-
 
 /* Images provided in /images folder. All images from Unsplash.com
    - cherry.jpg by Mae Mu
@@ -34,6 +31,7 @@ let cart = [];
   - addProductToCart should then increase the product's quantity
   - if the product is not already in the cart, add it to the cart
 */
+
 function getProductById(productId) {
   return products.find(function (p) { return p.productId === productId; });
 }
